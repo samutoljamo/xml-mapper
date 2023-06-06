@@ -6,11 +6,11 @@ import {XmlMappingComposeFunction} from '.';
  *
  * ```<root><node>value</node></root> => {node: "value"}```
  */
-export const stringValue: XmlMappingComposeFunction<string> = ({lookupKey, node, rootNode}) => {
+export const stringValue: XmlMappingComposeFunction<string> = ({lookupKey, node, rootNode, defaultValue}) => {
 	assertNode(node, rootNode, `stringValue got null node from ${buildXmlPath(rootNode)} key: ${lookupKey}`);
 	if (node.childNodes.length !== 1) {
 		// empty element
-		return null;
+		return defaultValue;
 	}
 	return node.childNodes[0].nodeValue;
 };
@@ -21,8 +21,11 @@ export const stringValue: XmlMappingComposeFunction<string> = ({lookupKey, node,
  * ```<root><node>123</node></root> => {node: 123}```
  */
 export const integerValue: XmlMappingComposeFunction<number> = (props) => {
-	const value = stringValue(props);
-	return value ? parseInt(value, 10) : null;
+	const value = stringValue({
+		...props,
+		defaultValue: null,
+	});
+	return value ? parseInt(value, 10) : props.defaultValue;
 };
 
 /**
@@ -31,7 +34,10 @@ export const integerValue: XmlMappingComposeFunction<number> = (props) => {
  * ```<root><node>2021-01-01</node></root> => {node: Date("2021-01-01")}```
  */
 export const dateValue: XmlMappingComposeFunction<Date> = (props) => {
-	const value = stringValue(props);
+	const value = stringValue({
+		...props,
+		defaultValue: null,
+	});
 	return value ? new Date(value) : null;
 };
 

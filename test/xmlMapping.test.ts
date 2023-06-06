@@ -210,7 +210,9 @@ describe('XML mapping', () => {
 			object: {mapper: objectSchemaValue(objectSchema), required: true},
 			notExists: {mapper: stringValue, required: true},
 		};
-		const rootSchema: XmlMappingSchema<XmlData> = {
+		const rootSchema: XmlMappingSchema<{
+			root: XmlData['root'] & {notExists: string};
+		}> = {
 			root: {mapper: objectSchemaValue(dataSchema), required: true},
 		};
 		expect(() => rootParser(doc.documentElement, rootSchema)).to.throw(XmlParserError, `stringValue got null node from #document/root key: notExists`);
@@ -252,6 +254,25 @@ describe('XML mapping', () => {
 
 		expect(parsed).to.be.eql({
 			items: [{id: '1'}, {id: '2'}],
+		});
+	});
+	it('should return default value if specified', async () => {
+		const itemSchema: XmlMappingSchema<{id: string; doesntExist: string}> = {
+			id: {mapper: stringValue, required: true},
+			doesntExist: {mapper: stringValue, defaultValue: 'default'},
+		};
+		const dataSchema: XmlMappingSchema<{
+			items: {id: string; doesntExist: string}[];
+		}> = {
+			items: {mapper: directArraySchemaValue('array', itemSchema), required: true},
+		};
+		const parsed = rootParser(docWithObjectArray.documentElement, dataSchema);
+
+		expect(parsed).to.be.eql({
+			items: [
+				{id: '1', doesntExist: 'default'},
+				{id: '2', doesntExist: 'default'},
+			],
 		});
 	});
 });

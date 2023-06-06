@@ -7,12 +7,11 @@ import {parseDate, parseInteger, XmlMappingComposeFunction} from '.';
  * ```<root><node attrName="value" /></root> => {lookupKey: "value"}```
  */
 export function attrStringValue(attrName?: string): XmlMappingComposeFunction<string> {
-	return function ({lookupKey, node, rootNode}) {
+	return function ({lookupKey, node, rootNode, defaultValue}) {
 		assertNode(node, rootNode, `attrStringValue ${attrName || lookupKey} got null node from ${buildXmlPath(rootNode)} key: ${lookupKey}`);
-		return (node as Element).getAttribute(attrName || lookupKey);
+		return (node as Element).getAttribute(attrName || lookupKey) ?? defaultValue;
 	};
 }
-
 /**
  * reads number attribute value from current node and maps it to used lookupKey or attrName
  *
@@ -20,7 +19,14 @@ export function attrStringValue(attrName?: string): XmlMappingComposeFunction<st
  */
 export function attrNumberValue(attrName?: string): XmlMappingComposeFunction<number> {
 	return function (props) {
-		return parseInteger(attrStringValue(attrName)(props));
+		return (
+			parseInteger(
+				attrStringValue(attrName)({
+					...props,
+					defaultValue: null,
+				}),
+			) ?? props.defaultValue
+		);
 	};
 }
 
@@ -31,7 +37,14 @@ export function attrNumberValue(attrName?: string): XmlMappingComposeFunction<nu
  */
 export function attrDateValue(attrName?: string): XmlMappingComposeFunction<Date> {
 	return function (props) {
-		return parseDate(attrStringValue(attrName)(props));
+		return (
+			parseDate(
+				attrStringValue(attrName)({
+					...props,
+					defaultValue: null,
+				}),
+			) ?? props.defaultValue
+		);
 	};
 }
 
@@ -53,7 +66,14 @@ export function rootAttrStringValue(attrName?: string): XmlMappingComposeFunctio
  */
 export function rootAttrNumberValue(attrName?: string): XmlMappingComposeFunction<number> {
 	return function (props) {
-		return parseInteger(rootAttrStringValue(attrName)(props));
+		return (
+			parseInteger(
+				rootAttrStringValue(attrName)({
+					...props,
+					defaultValue: null,
+				}),
+			) ?? props.defaultValue
+		);
 	};
 }
 
@@ -64,6 +84,13 @@ export function rootAttrNumberValue(attrName?: string): XmlMappingComposeFunctio
  */
 export function rootAttrDateValue(attrName?: string): XmlMappingComposeFunction<Date> {
 	return function (props) {
-		return parseDate(rootAttrStringValue(attrName)(props));
+		return (
+			parseDate(
+				rootAttrStringValue(attrName)({
+					...props,
+					defaultValue: null,
+				}),
+			) ?? props.defaultValue
+		);
 	};
 }
